@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="从材料、器件与晶圆制造到先进封装、测试与量产的半导体技术知识库。">
+  <title>半导体技术知识库</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="content.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main-content">跳到主要内容</a>
+  <header class="topbar">
+    <div class="wrap top-inner">
+      <a href="#home" class="brand"><span class="brand-mark" aria-hidden="true"></span><span>半导体技术知识库<small>SEMICONDUCTOR ATLAS</small></span></a>
+      <nav aria-label="主导航"><a href="#home" data-tab="home">总览</a><a href="#topics" data-tab="topics">全部专题</a><a href="#chapter/routes" data-tab="routes">路线与案例</a></nav>
+      <button class="search-trigger" type="button"><span class="magnify" aria-hidden="true"></span><span>搜索知识库</span><kbd>/</kbd></button>
+    </div>
+  </header>
+  <main id="main-content" tabindex="-1"></main>
+  <footer class="footer"><div class="wrap"><a href="#home">半导体技术知识库</a><a href="#chapter/glossary">术语与一手资料</a></div></footer>
+  <dialog id="search-dialog" aria-labelledby="search-title">
+    <div class="search-head"><h2 id="search-title">搜索知识库</h2><button type="button" class="close-search" aria-label="关闭搜索">×</button></div>
+    <label class="search-field"><span class="magnify" aria-hidden="true"></span><input id="search-input" type="search" placeholder="输入术语、材料、器件或工艺" autocomplete="off"></label>
+    <div id="search-results" class="search-results" aria-live="polite"></div>
+  </dialog>
+</body>
+</html>
