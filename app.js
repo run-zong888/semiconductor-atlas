@@ -1,6 +1,90 @@
 'use strict';
 
-const chapters = window.atlasChapters;
+const equipmentRows = [
+  ["m8-pd","M8-PD","PD 探针测试一体设备","光通信","光电测试","对 Ge/Si PIN 等光探测器执行晶圆级光学与电性测试，供后续筛选和分档。",10],
+  ["ppb-f300","PPB-F300","全自动巴条排列设备（双工位）","光通信","巴条前后处理","端面镀膜前，把 LD Bar 与陪条交错排入镀膜夹具，为镀膜备料。",11],
+  ["ust-b200","UST-B200","全自动拆巴设备","光通信","巴条前后处理","端面镀膜后，从夹具中取出巴条和陪条并分开收料，接入后续巴条工序。",12],
+  ["aoi-ld410","AOI-LD410","全自动巴条四面外观检测设备","光通信","AOI 外观检测","在 LD Bar 工序检测巴条四面外观缺陷，为后续加工筛选来料。",13],
+  ["dt01","DT01","激光器芯片测试机","光通信","光电测试","在激光器裸片阶段测试光电参数，支持芯片性能筛选。",14],
+  ["aoi-ld420","AOI-LD420 / AOI-LD430 / AOI-LD440","全自动芯片四面外观检测设备","光通信","AOI 外观检测","在单颗激光器芯片阶段检查四面外观，为晶粒筛选提供缺陷结果。",15],
+  ["ts-f200","TS-F200","平移式翻转分选设备","光通信","分选与排片","在裸片转盘和备料阶段做平移、翻转和摆盘，使晶粒的方向和载具匹配后续工位。",16],
+  ["pdb-10","PDB-10","高精度固晶设备","光通信","固晶与倒装","面向光通信 COB、BOX 等产品的固晶工序，执行取晶、视觉对位和多芯片贴装。",17],
+  ["oma-1000","OMA-1000","光模块自动组装线","光通信","模组组装","用于高速光模块整机组装阶段，按工艺配置自动或半自动组装工位。",18],
+  ["ms-wtw","MS-WTW-2S / MS-WTW-6S","晶圆检测分选设备","IC 封测","分选与排片","将单颗晶粒从蓝膜转移到另一张蓝膜，分选过程中集成 AOI 检查。",19],
+  ["ms-wtw-hr","MS-WTW-HR","高精度晶圆检测分选设备","IC 封测","分选与排片","将晶圆上的晶粒高精度重排至蓝膜，适用于后续工序要求规整阵列的备料环节。",20],
+  ["ms-wtp","MS-WTP","晶圆排片板级设备","IC 封测","分选与排片","将单颗晶粒从蓝膜排至粘性基板，接入以板为载体的后续工序。",21],
+  ["wtr","WTR","晶粒检测分选编带设备","IC 封测","检测与编带","输入为蓝膜上的未塑封裸片，完成六面外观检测、分选与编带。",22],
+  ["da6008","DA6008 / DA6008+","软焊料固晶设备","IC 封测","固晶与倒装","以软焊料将功率裸片接合到框架，适用于 TO-220、TO-247、DPAK 等功率器件固晶。",23],
+  ["mdb20","MDB20 · MDB20std / MDB20max / NXB1600","多芯片固晶设备","IC 封测","固晶与倒装","面向 CIS、MEMS、存储芯片、功率器件和光器件等产品的多芯片贴装，倒装按机型配置。",24],
+  ["mdb-fc300","MDB-FC300","高精度多芯片倒装贴片设备","IC 封测","固晶与倒装","用于多裸片视觉对位和倒装贴装，可对应 FC-BGA、FOWLP、FOPLP 等路线中的贴装工位。",25],
+  ["ptr","PTR","板级编带分选设备","IC 封测","检测与编带","对板级封装的 IC 器件做六面外观检测、分选和编带。与 WTR 的主要区别是前端来料为板级封装品。",26],
+  ["m6","M6","LED 探针测试一体设备","显示半导体","光电测试","对 LED 晶粒执行光学、电性测试，为后续分档和晶粒分选提供数据。",27],
+  ["ms3300","MS3300","全自动 LED 芯片高速分选设备","显示半导体","分选与排片","依据晶圆图或分档信息执行 LED 晶粒高速重排、分选，供后续固晶。",28],
+  ["mlb100","MLB100","全自动 Mini LED 固晶设备","显示半导体","固晶与倒装","对应 Mini LED 直显产品的 COB、MIP、COG 等固晶工位，按目标阵列逐颗贴装。",29],
+  ["mlu45","MLU45","全自动 Mini LED 固晶设备","显示半导体","固晶与倒装","对应 Mini LED 背光（Mini BLU）固晶，面向大尺寸和超大尺寸背光基板贴装。",30]
+];
+
+const equipmentColumns = ['设备与型号', '对应工序', '设备在这一站做什么'];
+const equipmentStages = [...new Set(equipmentRows.map(row => row[4]))];
+const equipmentIndustries = [...new Set(equipmentRows.map(row => row[3]))];
+const equipmentSections = [
+  { title: '按工序找设备', anchor: 'equipment-map', level: 2 },
+  ...equipmentIndustries.map((title, index) => ({ title, anchor: 'equipment-line-' + index, level: 2 })),
+];
+
+function equipmentRow([id, model, name, , stage, role, page]) {
+  return '<tr id="' + id + '"><td><strong>' + name + '</strong><br>' + model +
+    '<br><small>产品册 PDF 第 ' + page + ' 页</small></td><td>' + stage + '</td><td>' + role + '</td></tr>';
+}
+
+function equipmentTable(rows) {
+  return '<div class="table-scroll" role="region" aria-label="设备与工序对照" tabindex="0"><table><thead><tr>' +
+    equipmentColumns.map(label => '<th scope="col">' + label + '</th>').join('') +
+    '</tr></thead><tbody>' + rows.map(equipmentRow).join('') + '</tbody></table></div>';
+}
+
+function equipmentDirectory() {
+  const flows = [
+    'LD 巴条可按「排巴 → 端面镀膜 → 拆巴」理解，巴条级和裸片级各有外观检测点。PD 晶圆测试和高速光模块整机组装是另外两个站点。',
+    '按来料和出料区分路线。蓝膜来料可重排至另一张蓝膜、排到粘性基板，或经检测后编带。固晶、倒装和板级封装品编带对应不同站点。',
+    '可按「LED 晶粒测试 → 晶圆图分选 → Mini LED 固晶」理解。固晶设备按直显与背光产品分线。',
+  ];
+  return '<h2 id="equipment-map">按工序找设备</h2>' +
+    '<p>先选客户的工序，再对照来料形态、设备动作和后续去向。产品册列出的设备主要分布在晶圆或晶粒测试、裸片备料、封装贴装和模组组装。</p>' +
+    '<div class="filters" role="group" aria-label="按工序筛选设备">' +
+    ['全部工序', ...equipmentStages].map((stage, i) => '<button type="button" data-equipment-stage="' + i + '" aria-pressed="' + (i === 0) + '">' + stage + '</button>').join('') +
+    '</div><p id="equipment-count" aria-live="polite">共 ' + equipmentRows.length + ' 个设备条目</p>' +
+    equipmentIndustries.map((industry, i) => '<section data-equipment-industry="' + i + '"><h2 id="equipment-line-' + i + '">' + industry +
+      '</h2><p>' + flows[i] + '</p>' + equipmentTable(equipmentRows.filter(row => row[3] === industry)) + '</section>').join('') +
+    '<p>来源为智立方《半导体专业解决方案提供商》产品册。页码按 PDF 阅读器显示的顺序标注。设备选型需按来料、载具、节拍和项目配置核对。</p>';
+}
+
+const equipmentChapter = {
+  id: 'equipment',
+  title: '智立方设备与工序',
+  group: '装备与应用',
+  description: '按光通信、IC 封测和显示半导体查看智立方设备，并按测试、检测、分选、固晶、组装及编带工序筛选。',
+  terms: '光通信 · IC 封测 · Mini LED',
+  html: equipmentDirectory(),
+  sections: equipmentSections,
+  searchable: equipmentRows.map(([id, model, name, industry, stage, role]) => ({
+    title: model + '｜' + name, anchor: id, content: [model, name, industry, stage, role].join(' '),
+  })),
+};
+const chapters = [...window.atlasChapters, equipmentChapter];
+
+function relatedEquipment(id) {
+  const links = {
+    overview: ['', '按工序查智立方设备'],
+    optics: ['/equipment-line-0', '查看光通信设备和显示半导体设备'],
+    package: ['/equipment-line-1', '查看 IC 封测、固晶和倒装设备'],
+    test: ['/equipment-map', '查看光电测试、AOI、分选和编带设备'],
+    routes: ['/equipment-line-2', '查看 Mini LED 固晶线及其他工序设备'],
+  };
+  const link = links[id];
+  return link ? '<p><a href="#chapter/equipment' + link[0] + '">' + link[1] + '</a></p>' : '';
+}
+
 const topics = chapters.slice(1);
 const byId = new Map(chapters.map(chapter => [chapter.id, chapter]));
 const main = document.querySelector('main');
@@ -18,7 +102,7 @@ const chains = [
 ];
 const icon = {
   materials: '◇', fab: '▦', logic: '◫', power: 'ϟ', optics: '◎',
-  package: '▱', test: '◈', routes: '⇄', glossary: '☷',
+  package: '▱', test: '◈', routes: '⇄', glossary: '☷', equipment: '▦',
 };
 let selectedGroup = '全部';
 const escape = text => text.replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
@@ -37,7 +121,7 @@ function home() {
   return '<div class="wrap home">' +
     '<section class="hero"><div class="hero-copy"><p class="eyebrow"><span></span> 半导体全链条图谱</p><h1>半导体<br>技术知识库</h1>' +
     '<p class="hero-description">从材料和器件原理，到晶圆制造、先进封装和量产测试。按工序查技术，按场景比路线。</p>' +
-    '<div class="hero-actions"><a class="primary" href="#topics">浏览全部专题</a><a class="secondary" href="#chapter/routes">查看路线对照</a></div></div>' +
+    '<div class="hero-actions"><a class="primary" href="#topics">浏览全部专题</a><a class="secondary" href="#chapter/routes">查看路线对照</a><a class="secondary" href="#chapter/equipment">智立方设备</a></div></div>' +
     '<div class="hero-visual" aria-hidden="true"><canvas id="wafer" width="850" height="640"></canvas><span class="visual-label top-label">WAFER STRUCTURE</span><span class="visual-label bottom-label">SILICON WAFER / DIE ARRAY</span><span class="corner tl"></span><span class="corner br"></span></div></section>' +
     '<section class="chain-section"><div class="section-heading"><h2>从材料到量产</h2><a href="#chapter/overview">查看全链条地图</a></div><div class="chain">' +
     chains.map(([title, detail, id]) => '<a href="#chapter/' + id + '"><span class="chain-node" aria-hidden="true"></span><strong>' + title + '</strong><small>' + detail + '</small></a>').join('') +
@@ -56,7 +140,7 @@ function chapterPage(chapter) {
     chapters.map(entry => '<a href="#chapter/' + entry.id + '"' + (entry === chapter ? ' aria-current="page"' : '') + '>' + entry.title + '</a>').join('') +
     '</nav></details></aside><article class="article"><header class="article-head"><div class="crumb"><a href="#topics">全部专题</a><span> / ' + chapter.group + '</span></div><h1>' + chapter.title + '</h1><p>' + chapter.description + '</p></header>' +
     '<details class="mobile-toc"><summary>本篇目录</summary>' + toc(chapter) + '</details>' +
-    '<div class="article-body">' + chapter.html + '</div><nav class="article-pager" aria-label="相邻专题">' +
+    '<div class="article-body">' + relatedEquipment(chapter.id) + chapter.html + '</div><nav class="article-pager" aria-label="相邻专题">' +
     (prev ? '<a href="#chapter/' + prev.id + '"><small>上一篇</small>' + prev.title + '</a>' : '') +
     (next ? '<a href="#chapter/' + next.id + '"><small>下一篇</small>' + next.title + '</a>' : '') + '</nav></article>' +
     '<aside class="toc"><h2>本篇目录</h2>' + toc(chapter) + '</aside></div>';
@@ -67,6 +151,11 @@ function toc(chapter) {
 }
 
 let renderedPage;
+function visibleEquipmentAnchor(anchor) {
+  const target = document.getElementById(anchor);
+  return target && !target.closest('[hidden]');
+}
+
 function render() {
   const [route, id, anchor] = (location.hash.slice(1) || 'home').split('/');
   if (route === 'main-content') return;
@@ -77,13 +166,21 @@ function render() {
     main.innerHTML = chapter ? chapterPage(chapter) : current === 'topics' ? topicPage() : home();
     document.title = chapter ? chapter.title + ' | 半导体技术知识库' : (current === 'topics' ? '全部专题 | ' : '') + '半导体技术知识库';
     document.querySelectorAll('[data-tab]').forEach(link => {
-      if (link.dataset.tab === (chapter && chapter.id !== 'routes' ? 'topics' : current)) link.setAttribute('aria-current', 'page');
+      const tab = chapter && !['routes', 'equipment'].includes(chapter.id) ? 'topics' : current;
+      if (link.dataset.tab === tab) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     });
     if (current === 'home') drawWafer();
   }
+  if (current === 'equipment' && anchor && !visibleEquipmentAnchor(anchor)) {
+    main.querySelector('[data-equipment-stage="0"]').click();
+  }
   const section = anchor && document.getElementById(anchor);
-  if (section) section.scrollIntoView();
+  if (section) {
+    main.querySelector('[data-focused-equipment]')?.removeAttribute('data-focused-equipment');
+    if (current === 'equipment' && section.tagName === 'TR') section.setAttribute('data-focused-equipment', '');
+    section.scrollIntoView();
+  }
   else if (!anchor) window.scrollTo(0, 0);
   main.querySelectorAll('.toc a, .mobile-toc a').forEach(link => {
     if (link.hash === location.hash) link.setAttribute('aria-current', 'location');
@@ -210,11 +307,37 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Enter' && event.target === input) results.querySelector('a')?.click();
 });
 main.addEventListener('click', event => {
+  const stageButton = event.target.closest('[data-equipment-stage]');
+  if (stageButton) {
+    const selection = Number(stageButton.dataset.equipmentStage);
+    const stage = equipmentStages[selection - 1];
+    let count = 0;
+    main.querySelectorAll('[data-equipment-stage]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button === stageButton));
+    });
+    main.querySelectorAll('[data-equipment-industry]').forEach(section => {
+      const industry = equipmentIndustries[Number(section.dataset.equipmentIndustry)];
+      const rows = equipmentRows.filter(row => row[3] === industry && (!stage || row[4] === stage));
+      count += rows.length;
+      section.hidden = rows.length === 0;
+      section.querySelector('tbody').innerHTML = rows.map(equipmentRow).join('');
+    });
+    document.querySelector('#equipment-count').textContent = '共 ' + count + ' 个设备条目';
+    return;
+  }
   const filter = event.target.closest('[data-group]');
   if (!filter) return;
   selectedGroup = filter.dataset.group;
   main.querySelectorAll('[data-group]').forEach(button => button.setAttribute('aria-pressed', String(button === filter)));
   document.querySelector('#topic-grid').innerHTML = topics.filter(t => selectedGroup === '全部' || t.group === selectedGroup).map(card).join('');
 });
+const equipmentTab = document.createElement('a');
+equipmentTab.href = '#chapter/equipment';
+equipmentTab.dataset.tab = 'equipment';
+equipmentTab.textContent = '智立方设备';
+document.querySelector('.top-inner nav').append(equipmentTab);
+const equipmentStyle = document.createElement('style');
+equipmentStyle.textContent = 'tr[id]{scroll-margin-top:24px}tr[data-focused-equipment]{outline:2px solid #2b6493;outline-offset:-2px}@media(max-width:510px){.top-inner nav{gap:12px}.top-inner nav a{font-size:.85rem}}';
+document.head.append(equipmentStyle);
 window.addEventListener('hashchange', render);
 render();
